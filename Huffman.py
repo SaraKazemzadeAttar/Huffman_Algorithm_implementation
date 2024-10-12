@@ -1,4 +1,5 @@
 import heapq
+from collections import Counter
 
 class Node:
     def __init__(self, symbol=None, frequency=None):
@@ -34,13 +35,21 @@ def generate_huffman_codes(node, code="", huffman_codes={}):
 
     return huffman_codes
 
+# Step 1: Get user input
+user_input = input("Enter a string (Persian, numbers, and spaces are allowed): ")
 
-# Build the Huffman tree
+# Step 2: Calculate frequency of each character in the user input
+frequency = Counter(user_input)
+chars = list(frequency.keys())
+freq = list(frequency.values())
+
+# Step 3: Build the Huffman tree
 root = build_huffman_tree(chars, freq)
 
-# Generate Huffman codes
+# Step 4: Generate Huffman codes
 huffman_codes = generate_huffman_codes(root)
 
-# Print Huffman codes
+# Step 5: Print Huffman codes
+print("\nHuffman Codes for the entered string:")
 for char, code in huffman_codes.items():
-    print(f"Character: {char}, Code: {code}")
+    print(f"Character: {repr(char)}, Code: {code}")
