@@ -1,6 +1,7 @@
 import heapq
 from collections import Counter
 
+# Define the Node class for the Huffman Tree
 class Node:
     def __init__(self, symbol=None, frequency=None):
         self.symbol = symbol
@@ -11,11 +12,12 @@ class Node:
     def __lt__(self, other):
         return self.frequency < other.frequency
 
+# Function to build the Huffman Tree
 def build_huffman_tree(chars, freq):
     priority_queue = [Node(char, f) for char, f in zip(chars, freq)]
     heapq.heapify(priority_queue)
 
-    # Build the Huffman tree
+    # Build the Huffman Tree
     while len(priority_queue) > 1:
         left_child = heapq.heappop(priority_queue)
         right_child = heapq.heappop(priority_queue)
@@ -26,6 +28,7 @@ def build_huffman_tree(chars, freq):
 
     return priority_queue[0]
 
+# Function to generate Huffman codes from the tree
 def generate_huffman_codes(node, code="", huffman_codes={}):
     if node is not None:
         if node.symbol is not None:
@@ -35,21 +38,24 @@ def generate_huffman_codes(node, code="", huffman_codes={}):
 
     return huffman_codes
 
-# Step 1: Get user input
-user_input = input("Enter a string (Persian, numbers, and spaces are allowed): ")
+# Get input from the user
+user_input = input("Enter a string: ")
 
-# Step 2: Calculate frequency of each character in the user input
+# Calculate the frequency of each character
 frequency = Counter(user_input)
 chars = list(frequency.keys())
 freq = list(frequency.values())
 
-# Step 3: Build the Huffman tree
+#  Build the Huffman Tree
 root = build_huffman_tree(chars, freq)
 
-# Step 4: Generate Huffman codes
+# Generate Huffman codes
 huffman_codes = generate_huffman_codes(root)
 
-# Step 5: Print Huffman codes
+#Sort characters by frequency in descending order
+sorted_by_freq = sorted(frequency.items(), key=lambda item: (-item[1], item[0]))
+
+# Print Huffman codes based on frequency order
 print("\nHuffman Codes for the entered string:")
-for char, code in huffman_codes.items():
-    print(f"Character: {repr(char)}, Code: {code}")
+for char, _ in sorted_by_freq:
+    print(f"Character: {repr(char)}, Code: {huffman_codes[char]}")
