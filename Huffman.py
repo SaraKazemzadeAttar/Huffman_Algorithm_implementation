@@ -27,13 +27,17 @@ def calculate_frequencies(word):
             nodes.append(Node(char, freq))
     print("Frequencies:", frequencies)
 
-def build_huffman_tree():
+def build_huffman_tree(switch=False):
     global frames
     while len(nodes) > 1:
         nodes.sort(key=lambda x: x.freq)
         
         left = nodes.pop(0)
         right = nodes.pop(0)
+
+        # If switch is True, rearrange the nodes
+        if switch and left.freq < right.freq:
+            left, right = right, left
 
         merged = Node(freq=left.freq + right.freq)
         merged.left = left
@@ -56,12 +60,12 @@ def generate_huffman_codes(node, current_code, codes):
     generate_huffman_codes(node.left, current_code + '0', codes)
     generate_huffman_codes(node.right, current_code + '1', codes)
 
-def huffman_encoding(word):
+def huffman_encoding(word, switch=False):
     global nodes
     nodes = []
     frames.clear()  # Clear the frames for new input
     calculate_frequencies(word)
-    root = build_huffman_tree()
+    root = build_huffman_tree(switch)
     codes = {}
     generate_huffman_codes(root, '', codes)
     return root, codes
@@ -108,6 +112,7 @@ def run_huffman_encoding():
         messagebox.showerror("Input Error", "Please enter a valid string.")
         return
     
+    # Run without switching by default
     root, codes = huffman_encoding(word)
 
     # Show the Huffman codes
@@ -115,7 +120,27 @@ def run_huffman_encoding():
 
     # Create the animation
     fig = plt.figure(figsize=(10, 8))
-    anim = FuncAnimation(fig, update, frames=len(frames), interval=2500, repeat=False) # interval is for sleep of animation
+    anim = FuncAnimation(fig, update, frames=len(frames), interval=1000, repeat=False)
+
+    plt.show()
+
+# Function to switch left child
+def switch_left_child():
+    word = input_entry.get()
+    
+    if not word:
+        messagebox.showerror("Input Error", "Please enter a valid string.")
+        return
+    
+    # Run with switching
+    root, codes = huffman_encoding(word, switch=True)
+
+    # Show the Huffman codes
+    result_label.config(text=f"Huffman Codes (switched): {codes}")
+
+    # Create the animation
+    fig = plt.figure(figsize=(10, 8))
+    anim = FuncAnimation(fig, update, frames=len(frames), interval=1000, repeat=False)
 
     plt.show()
 
@@ -133,6 +158,10 @@ input_entry.pack()
 # Create a button to trigger Huffman encoding
 encode_button = tk.Button(root_gui, text="Encode", command=run_huffman_encoding)
 encode_button.pack()
+
+# Create an additional button for switching left child
+switch_button = tk.Button(root_gui, text="Switch Left Child", command=switch_left_child)
+switch_button.pack()
 
 # Label to display Huffman codes
 result_label = tk.Label(root_gui, text="Huffman Codes will appear here.")
