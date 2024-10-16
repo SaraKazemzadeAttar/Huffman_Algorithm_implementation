@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from matplotlib.animation import FuncAnimation
 import tkinter as tk
-from tkinter import messagebox
 
 class Node:
     def __init__(self, char=None, freq=0):
@@ -15,27 +14,28 @@ class Node:
         return f"Node(char={self.char}, freq={self.freq})"
 
 nodes = []
-frames = []  # To store the intermediate steps for animation
+steps = []
 
-def calculate_frequencies(word):
+# Calculate the frequency of each character in the string
+def frequencies(word):
     global nodes
-    frequencies = {}
+    freq_dict = {}
     for char in word:
-        if char not in frequencies:
+        if char not in freq_dict:
             freq = word.count(char)
-            frequencies[char] = freq
+            freq_dict[char] = freq
             nodes.append(Node(char, freq))
-    print("Frequencies:", frequencies)
+    print("Frequencies:", freq_dict)
 
-def build_huffman_tree(switch=False):
-    global frames
+# Build the Huffman tree 
+def huffman_tree(switch=False):
+    global steps
     while len(nodes) > 1:
         nodes.sort(key=lambda x: x.freq)
         
         left = nodes.pop(0)
         right = nodes.pop(0)
 
-        # If switch is True, rearrange the nodes
         if switch and left.freq < right.freq:
             left, right = right, left
 
@@ -45,33 +45,34 @@ def build_huffman_tree(switch=False):
         
         nodes.append(merged)
         
-        # Capture the intermediate tree structure for animation
-        frames.append(nodes.copy())
+        steps.append(nodes.copy())
     
     return nodes[0]
 
-def generate_huffman_codes(node, current_code, codes):
+# Generate Huffman codes for each character in the tree
+def huffman_codes(node, current_code, codes):
     if node is None:
         return
 
     if node.char is not None:
         codes[node.char] = current_code
 
-    generate_huffman_codes(node.left, current_code + '0', codes)
-    generate_huffman_codes(node.right, current_code + '1', codes)
+    huffman_codes(node.left, current_code + '0', codes)
+    huffman_codes(node.right, current_code + '1', codes)
 
-def huffman_encoding(word, switch=False):
+# Encode the given word using Huffman coding.
+def encoding_words(word, switch=False):
     global nodes
     nodes = []
-    frames.clear()  # Clear the frames for new input
-    calculate_frequencies(word)
-    root = build_huffman_tree(switch)
+    steps.clear()
+    frequencies(word)
+    root = huffman_tree(switch)
     codes = {}
-    generate_huffman_codes(root, '', codes)
+    huffman_codes(root, '', codes)
     return root, codes
 
-# Function to visualize the tree for a specific frame
-def visualize_tree(frame_nodes, graph, pos=None, level=0, x=0.5, dx=0.1, parent=None, label=""):
+# Image the Huffman tree with default colors 
+def imagine_tree(frame_nodes, graph, pos=None, level=0, x=0.5, dx=0.1, parent=None, label=""):
     if pos is None:
         pos = {}
 
@@ -79,93 +80,106 @@ def visualize_tree(frame_nodes, graph, pos=None, level=0, x=0.5, dx=0.1, parent=
         pos[node] = (x, level)
         
         if node.left:
-            pos = visualize_tree([node.left], graph, pos=pos, level=level-1, x=x-dx, dx=dx/2, parent=node, label='0')
+            pos = imagine_tree([node.left], graph, pos=pos, level=level-1, x=x-dx, dx=dx/2, parent=node, label='0')
         if node.right:
-            pos = visualize_tree([node.right], graph, pos=pos, level=level-1, x=x+dx, dx=dx/2, parent=node, label='1')
+            pos = imagine_tree([node.right], graph, pos=pos, level=level-1, x=x+dx, dx=dx/2, parent=node, label='1')
 
         if parent:
             graph.add_edge(parent, node, label=label)
 
     return pos
 
-# Animation function to update the plot at each frame
-def update(frame_index):
-    plt.clf()  # Clear the plot for each frame
+# Update animation frame based on the current frame index
+def update_anime(frame_index):
+    plt.clf()
     graph = nx.DiGraph()
 
-    # Draw the Huffman tree for the current frame
-    frame_nodes = frames[frame_index]
-    pos = visualize_tree(frame_nodes, graph)
+    frame_nodes = steps[frame_index]
+    pos = imagine_tree(frame_nodes, graph)
+
+    # Assign colors: pink for leaf nodes and gray for merged nodes
+    node_colors = []
+    for node in graph.nodes():
+        if node.char is not None:  
+            node_colors.append('pink')  
+        else:  
+            node_colors.append('gray') 
 
     nx.draw(graph, pos, with_labels=True, labels={node: f"{node.char or ''} ({node.freq})" for node in graph.nodes()}, 
-            node_size=3000, node_color='skyblue', font_size=10, font_weight='bold', arrows=False)
+            node_size=3000, node_color=node_colors, font_size=10, font_weight='bold', arrows=False)
 
     edge_labels = nx.get_edge_attributes(graph, 'label')
     nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels, font_size=12)
     plt.title(f"Huffman Tree Construction Step {frame_index + 1}")
 
-# Function to handle the GUI input and display results
-def run_huffman_encoding():
+anim = None
+
+# Create a custom error box
+def show_error(message):
+    error_window = tk.Toplevel(root_gui)
+    error_window.title("Error")
+    error_window.configure(bg='lightgray')
+    
+    label = tk.Label(error_window, text=message, bg='lightgray', fg='black', font=('Arial', 12))
+    label.pack(pady=10)
+
+    button = tk.Button(error_window, text="OK", command=error_window.destroy, bg='pink', fg='black', font=('Arial', 12))
+    button.pack(pady=10)
+
+# Show result
+def result():
+    global anim
     word = input_entry.get()
     
     if not word:
-        messagebox.showerror("Input Error", "Please enter a valid string.")
+        show_error("Please enter a string.")
         return
     
-    # Run without switching by default
-    root, codes = huffman_encoding(word)
+    root, codes = encoding_words(word)
 
-    # Show the Huffman codes
     result_label.config(text=f"Huffman Codes: {codes}")
 
-    # Create the animation
     fig = plt.figure(figsize=(10, 8))
-    anim = FuncAnimation(fig, update, frames=len(frames), interval=1000, repeat=False)
+    anim = FuncAnimation(fig, update_anime, frames=len(steps), interval=1000, repeat=False)
 
     plt.show()
 
-# Function to switch left child
-def switch_left_child():
+# Run Huffman encoding with the left child switch option enabled
+def switching():
+    global anim
     word = input_entry.get()
     
     if not word:
-        messagebox.showerror("Input Error", "Please enter a valid string.")
+        show_error("Please enter a valid string.")
         return
     
-    # Run with switching
-    root, codes = huffman_encoding(word, switch=True)
+    root, codes = encoding_words(word, switch=True)
 
-    # Show the Huffman codes
     result_label.config(text=f"Huffman Codes (switched): {codes}")
 
-    # Create the animation
     fig = plt.figure(figsize=(10, 8))
-    anim = FuncAnimation(fig, update, frames=len(frames), interval=1000, repeat=False)
+    anim = FuncAnimation(fig, update_anime, frames=len(steps), interval=1000, repeat=False)
 
     plt.show()
 
-# Set up the GUI using tkinter
 root_gui = tk.Tk()
 root_gui.title("Huffman Encoding Animation")
 
-# Create input field for user input
-input_label = tk.Label(root_gui, text="Enter a word or sentence:")
-input_label.pack()
+input_label = tk.Label(root_gui, text="Enter a word or sentence:", bg='#D3D3D3', fg='black', font=('Arial', 12))
+input_label.pack(pady=10)
 
-input_entry = tk.Entry(root_gui, width=40)
-input_entry.pack()
+input_entry = tk.Entry(root_gui, width=40, font=('Arial', 12), bg='#f0f0f0')
+input_entry.pack(pady=5)
 
-# Create a button to trigger Huffman encoding
-encode_button = tk.Button(root_gui, text="Encode", command=run_huffman_encoding)
-encode_button.pack()
+encode_button = tk.Button(root_gui, text="Encode", command=result, bg='#FFC0CB', fg='black', font=('Arial', 12), width=20)
+encode_button.pack(pady=10)
 
-# Create an additional button for switching left child
-switch_button = tk.Button(root_gui, text="Switch Left Child", command=switch_left_child)
-switch_button.pack()
+switch_button = tk.Button(root_gui, text="Switch Left Child", command=switching, bg='#FFC0CB', fg='black', font=('Arial', 12), width=20)
+switch_button.pack(pady=10)
 
-# Label to display Huffman codes
-result_label = tk.Label(root_gui, text="Huffman Codes will appear here.")
-result_label.pack()
+result_label = tk.Label(root_gui, text="Huffman Codes will appear here.", bg='#D3D3D3', fg='black', font=('Arial', 12))
+result_label.pack(pady=20)
 
-# Run the GUI loop
+root_gui.configure(bg='#D3D3D3')
+
 root_gui.mainloop()
