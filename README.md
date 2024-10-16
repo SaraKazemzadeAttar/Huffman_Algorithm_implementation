@@ -2,16 +2,6 @@
 
 This project implements a **Huffman Encoding** algorithm and visualizes the construction of the Huffman tree using **Python**, **Tkinter**, **NetworkX**, and **Matplotlib**. The application also includes an optional feature to switch the left and right child nodes in the Huffman tree construction.
 
-## Table of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-- [How to Run](#how-to-run)
-- [Screenshots](#screenshots)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-
 ## Overview
 Huffman coding is a lossless data compression algorithm where the frequency of each character determines its binary encoding. This project animates the step-by-step construction of the Huffman tree and shows the Huffman codes for a given string.
 
