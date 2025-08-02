@@ -26,3 +26,7 @@ You will need the following installed on your system:
    git clone https://github.com/yourusername/huffman-encoding-animation.git
    cd huffman-encoding-animation
 ## you can see result in video
+
+
+https://github.com/user-attachments/assets/3fd8097e-c661-4127-ba77-8c2d914e77ff
+
