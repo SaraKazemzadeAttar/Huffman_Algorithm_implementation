@@ -19,12 +19,14 @@ You will need the following installed on your system:
 - **Tkinter** (for GUI)
 - **Matplotlib** (for animations)
 - **NetworkX** (for graph representation)
-
 ### Install Dependencies
 1. Clone the repository:
    ```bash
    git clone https://github.com/yourusername/huffman-encoding-animation.git
    cd huffman-encoding-animation
+   ```bash
+    pip install matplotlib pillow networkx
+    ```
 ## you can see result in video
 
 
