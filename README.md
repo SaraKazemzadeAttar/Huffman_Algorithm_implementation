@@ -24,8 +24,7 @@ You will need the following installed on your system:
    ```bash
    git clone https://github.com/yourusername/huffman-encoding-animation.git
    cd huffman-encoding-animation
-   ```bash
-    pip install matplotlib pillow networkx
+   pip install matplotlib pillow networkx
     ```
 ## you can see result in video
 
